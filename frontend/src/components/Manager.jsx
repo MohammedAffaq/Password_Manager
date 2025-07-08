@@ -1,16 +1,9 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useRef, useState } from "react";
-import toast from 'react-hot-toast'
+import toast from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
-import {
-  getPasswords,
-  savePasswordToDB,
-  deletePasswordFromDB,
-} from "../api";
-
-
-
+import { getPasswords, savePasswordToDB, deletePasswordFromDB } from "../api";
 
 const Manager = () => {
   const ref = useRef();
@@ -18,27 +11,16 @@ const Manager = () => {
   const [form, setForm] = useState({ site: "", username: "", password: "" });
   const [passwordArray, setPasswordArray] = useState([]);
 
-  // const getPasswords = async () => {
-  //   let req = await fetch("http://localhost:3000/api/passwords");
-  //   let passwords = await req.json();
-  //   console.log(passwords);
-  //   setPasswordArray(passwords);
-  // };
-
-  // useEffect(() => {
-  //   getPasswords();
-  // }, []);
-
   useEffect(() => {
-  async function fetchData() {
-    const passwords = await getPasswords();
-    setPasswordArray(passwords);
-  }
-  fetchData();
-}, []);
+    async function fetchData() {
+      const passwords = await getPasswords();
+      setPasswordArray(passwords);
+    }
+    fetchData();
+  }, []);
 
   const copyText = (text) => {
-    toast.success("Copied to Clipboard")
+    toast.success("Copied to Clipboard");
     navigator.clipboard.writeText(text);
   };
 
@@ -52,85 +34,41 @@ const Manager = () => {
     }
   };
 
-  // const savePassword = async () => {
-  //   if (
-  //     form.site.length > 3 &&
-  //     form.username.length > 3 &&
-  //     form.password.length > 3
-  //   ) {
-  //     let updatedForm = { ...form };
-  //     // Check if it's a new entry
-  //     if (!form.id) {
-  //       updatedForm.id = uuidv4(); // Assign a new ID
-  //     } else {
-  //       // Delete the old entry from backend if editing
-  //       await fetch("/api/passwords", {
-  //         method: "DELETE",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({ id: form.id }),
-  //       });
-  //     }
-  //     await fetch("/api/passwords", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify(updatedForm),
-  //     });
-  //     setPasswordArray([...passwordArray, updatedForm]);
-  //     setForm({ site: "", username: "", password: "" });
-  //     toast.success("Password saved...")
-  //   } else {
-  //     toast.error("Password not saved!");
-  //   }
-  // };
-
   const savePassword = async () => {
-  if (
-    form.site.length > 3 &&
-    form.username.length > 3 &&
-    form.password.length > 3
-  ) {
-    let updatedForm = { ...form };
-    if (!form.id) {
-      updatedForm.id = uuidv4();
-    } else {
-      await deletePasswordFromDB({ id: form.id });
-    }
+    if (
+      form.site.length > 3 &&
+      form.username.length > 3 &&
+      form.password.length > 3
+    ) {
+      let updatedForm = { ...form };
+      if (!form.id) {
+        updatedForm.id = uuidv4();
+      } else {
+        await deletePasswordFromDB({ id: form.id });
+      }
 
-    await savePasswordToDB(updatedForm);
-    setPasswordArray([...passwordArray, updatedForm]);
-    setForm({ site: "", username: "", password: "" });
-    toast.success("Password saved...");
-  } else {
-    toast.error("Password not saved!");
-  }
-};
+      await savePasswordToDB(updatedForm);
+      setPasswordArray([...passwordArray, updatedForm]);
+      setForm({ site: "", username: "", password: "" });
+      toast.success("Password saved...");
+    } else {
+      toast.error("Password not saved!");
+    }
+  };
 
   const editPassword = (id) => {
     setForm({ ...passwordArray.filter((item) => item.id === id)[0], id: id });
     setPasswordArray(passwordArray.filter((item) => item.id !== id));
   };
 
-  // const deletePassword = async (id) => {
-  //   let c = confirm("Do you really want to delete this password?");
-  //   if (c) {
-  //     setPasswordArray(passwordArray.filter((item) => item.id !== id));
-  //     let res = await fetch("/api/passwords", {
-  //       method: "DELETE",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ id }),
-  //     });
-  //     toast.success("Password deleted!");
-  //   }
-  // };
-
   const deletePassword = async (id) => {
-  const c = confirm("Do you really want to delete this password?");
-  if (c) {
-    setPasswordArray(passwordArray.filter((item) => item.id !== id));
-    await deletePasswordFromDB({ id });
-    toast.success("Password deleted!");
-  }
-};
+    const c = confirm("Do you really want to delete this password?");
+    if (c) {
+      setPasswordArray(passwordArray.filter((item) => item.id !== id));
+      await deletePasswordFromDB({ id });
+      toast.success("Password deleted!");
+    }
+  };
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });

@@ -4,9 +4,18 @@ import { MongoClient } from 'mongodb';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+
 
 dotenv.config()
 
+const app = express()
+if(process.env.NODE_ENV != "production") {
+  app.use(cors({
+    origin: "http://localhost:5173",
+  }))
+}
 // Connection URL
 const url = process.env.MONGODB_URI
 const client = new MongoClient(url);
@@ -14,17 +23,13 @@ const client = new MongoClient(url);
 // Database Name
 const dbName = 'passop';
 
-const app = express()
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT
-const __dirname = path.resolve()
+
 
 app.use(bodyParser.json())
 
-if (process.env.NODE_ENV != "production") {
-    app.use(cors({
-        origin: "http://localhost:5173",
-    }))
-}
 
 
 

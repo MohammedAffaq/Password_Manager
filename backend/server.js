@@ -1,8 +1,9 @@
-const express = require('express')
-const dotenv = require('dotenv')
-const { MongoClient } = require('mongodb');
-const bodyparser = require('body-parser')
-const cors = require('cors')
+import express from 'express'
+import dotenv from 'dotenv';
+import { MongoClient } from 'mongodb';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import path from 'path';
 
 dotenv.config()
 
@@ -12,11 +13,18 @@ const client = new MongoClient(url);
 
 // Database Name
 const dbName = 'passop';
-const app = express()
-const port = 3000
 
-app.use(bodyparser.json())
-app.use(cors())
+const app = express()
+const PORT = process.env.PORT
+const __dirname = path.resolve()
+
+app.use(bodyParser.json())
+
+if (process.env.NODE_ENV != "production") {
+    app.use(cors({
+        origin: "http://localhost:5173",
+    }))
+}
 
 
 
@@ -47,14 +55,22 @@ app.delete('/', async (req, res) => {
   res.send({success:true , result: findResult})
 })
 
+if (process.env.NODE_ENV === "production") {
+    app.use(express.static(path.join(__dirname, "../frontend/dist")))
+
+    app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+});
+}
+
 
 async function startServer() {
   try {
     await client.connect();
     console.log("Connected to MongoDB");
 
-    app.listen(port, () => {
-      console.log(`Server running at http://localhost:${port}`);
+    app.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}`);
     });
   } catch (err) {
     console.error("Failed to connect to MongoDB", err);

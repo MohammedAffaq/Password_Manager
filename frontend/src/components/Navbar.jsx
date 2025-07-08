@@ -10,11 +10,6 @@ const Navbar = () => {
           Pass
           <span className="text-green-500">OP/&gt;</span>
         </div>
-
-        {/* <button className="text-[#24292F] bg-slate-200 rounded-full flex justify-center items-center cursor-pointer" onClick={href="https://github.com/MohammedAffaq/Password_Manager"}>
-          <img className="w-10 p-1" src="github.svg" alt="Github"/>
-          <span className="font-bold px-1">GitHub</span>
-        </button> */}
         <a
           href="https://github.com/MohammedAffaq/Password_Manager"
           target="_blank"

@@ -1,85 +1,80 @@
-import express from 'express'
-import dotenv from 'dotenv';
-import { MongoClient } from 'mongodb';
-import bodyParser from 'body-parser';
+// backend/server.js
+import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { MongoClient } from 'mongodb';
 
-
-
-dotenv.config()
-
-const app = express()
-if(process.env.NODE_ENV != "production") {
-  app.use(cors({
-    origin: "http://localhost:5173",
-  }))
-}
-// Connection URL
-const url = process.env.MONGODB_URI
-const client = new MongoClient(url);
-
-// Database Name
-const dbName = 'passop';
+dotenv.config();
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const PORT = process.env.PORT
 
+// MongoDB
+const client = new MongoClient(process.env.MONGODB_URI);
+const dbName = 'passop';
 
-app.use(bodyParser.json())
+app.use(cors());
+app.use(express.json());
 
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-
-
-app.get('/', async (req, res) => {
-  const db = client.db(dbName);
-  const collection = db.collection('passwords');
-  const findResult = await collection.find({}).toArray();
-  res.json(findResult)
-})
-
-
-
-// Save the password 
-app.post('/', async (req, res) => {
-  const password = req.body  
-  const db = client.db(dbName);
-  const collection = db.collection('passwords');
-  const findResult = await collection.insertOne(password);
-  res.send({success:true , result: findResult})
-})
-
-// Delete the password
-app.delete('/', async (req, res) => {
-  const password = req.body  
-  const db = client.db(dbName);
-  const collection = db.collection('passwords');
-  const findResult = await collection.deleteOne(password);
-  res.send({success:true , result: findResult})
-})
-
-if (process.env.NODE_ENV === "production") {
-    app.use(express.static(path.join(__dirname, "../frontend/dist")))
-
-    app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+// GET all passwords
+app.get('/api/passwords', async (req, res) => {
+  try {
+    const db = client.db(dbName);
+    const data = await db.collection('passwords').find({}).toArray();
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error fetching data" });
+  }
 });
-}
 
+// POST a new password
+app.post('/api/passwords', async (req, res) => {
+  try {
+    const db = client.db(dbName);
+    const result = await db.collection('passwords').insertOne(req.body);
+    res.json({ success: true, result });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Insert failed" });
+  }
+});
 
-async function startServer() {
+// DELETE a password
+app.delete('/api/passwords', async (req, res) => {
+  try {
+    const db = client.db(dbName);
+    const result = await db.collection('passwords').deleteOne(req.body);
+    res.json({ success: true, result });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Delete failed" });
+  }
+});
+
+// Serve frontend for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
+
+// Start server
+async function start() {
   try {
     await client.connect();
-    console.log("Connected to MongoDB");
-
+    console.log('✅ Connected to MongoDB');
     app.listen(PORT, () => {
-      console.log(`Server running at http://localhost:${PORT}`);
+      console.log(`🚀 Server listening on port ${PORT}`);
     });
   } catch (err) {
-    console.error("Failed to connect to MongoDB", err);
+    console.error('❌ MongoDB Connection Failed', err);
   }
 }
 
-startServer();
+start();
